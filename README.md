@@ -2,7 +2,7 @@
 
 Sistema que prevê as vendas dos próximos 7 dias de cada produto e recomenda **quanto produzir**, equilibrando o prejuízo da sobra (produto jogado fora) com o da falta (cliente que vai embora sem comprar). O modelo é **treinado com o histórico de vendas da própria empresa**, na hora em que ela envia a planilha.
 
-**[🌐 Testar o app](https://previsao-demanda.onrender.com)** · **[📖 Documentação da API](https://previsao-demanda.onrender.com/docs)**
+**[🌐 Testar o app](https://previsao-demanda-qrkn.onrender.com)** · **[📖 Documentação da API](https://previsao-demanda-qrkn.onrender.com/docs)**
 
 > Hospedado no plano gratuito do Render: se o app estiver parado, o primeiro acesso leva cerca de 1 minuto para carregar.
 
@@ -43,7 +43,7 @@ São **R$ 9,7 mil a mais em 12 semanas**, cerca de **R$ 42 mil por ano** para um
 
 ## Como uma empresa usa
 
-1. **Exporta o histórico de vendas** do sistema de caixa ou ERP, em **Excel ou CSV**: uma linha por venda ou por produto e dia ([modelo de planilha](https://previsao-demanda.onrender.com/modelo-planilha.xlsx)).
+1. **Exporta o histórico de vendas** do sistema de caixa ou ERP, em **Excel ou CSV**: uma linha por venda ou por produto e dia ([modelo de planilha](https://previsao-demanda-qrkn.onrender.com/modelo-planilha.xlsx)).
 2. **Envia no app.** Obrigatórias: **data, produto e quantidade**. Opcionais: preço, custo, promoção e categoria. Colunas em português ou inglês, datas no formato brasileiro. Se alguma coluna tiver outro nome, o app pergunta qual é qual.
 3. **Recebe o plano da semana:** quanto produzir de cada produto em cada dia, com gráfico do histórico e da previsão.
 4. **Vê o teste com o próprio histórico:** erro da previsão e quanto teria ganho nas últimas semanas em relação ao método tradicional.
