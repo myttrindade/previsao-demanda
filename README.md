@@ -1,4 +1,4 @@
-# 🥖 Previsão de Demanda: quanto produzir amanhã
+# 🥖 Produz Certo: previsão de demanda e plano de produção
 
 Sistema que prevê as vendas dos próximos 7 dias de cada produto e recomenda **quanto produzir**, equilibrando o prejuízo da sobra (produto jogado fora) com o da falta (cliente que vai embora sem comprar). O modelo é **treinado com o histórico de vendas da própria empresa**, na hora em que ela envia a planilha.
 

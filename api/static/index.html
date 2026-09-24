@@ -3,116 +3,184 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Previsão de Demanda</title>
+<title>Produz Certo · Previsão de Demanda</title>
 <meta name="description" content="Descubra quanto produzir de cada produto nos próximos 7 dias a partir do seu histórico de vendas.">
 <script>try{const t=localStorage.getItem('tema');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
 :root{
   color-scheme:light;
-  --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink-2:#52514e; --muted:#6f6d68;
-  --line:#e1e0d9; --border:rgba(11,11,11,.12); --s1:#2a78d6; --s2:#eb6834; --hist:#52514e;
-  --good:#006300; --crit:#d03b3b; --wk:rgba(42,120,214,.06);
+  --page:#f4f5f9; --surface:#ffffff; --surface-2:#f8f9fc; --ink:#101828; --ink-2:#475467; --muted:#667085;
+  --line:#e7e9f0; --border:rgba(16,24,40,.09); --shadow:0 1px 2px rgba(16,24,40,.05),0 4px 16px rgba(16,24,40,.06);
+  --brand:#2a78d6; --brand-2:#4a3aa7; --s1:#2a78d6; --s2:#eb6834; --hist:#667085;
+  --good:#067647; --good-bg:#ecfdf3; --good-line:#abefc6; --crit:#d03b3b; --wk:rgba(42,120,214,.05);
+  --t1:#2a78d6; --t1-bg:#eaf2fc; --t2:#4a3aa7; --t2-bg:#efedfa; --t3:#d9591f; --t3-bg:#fdf0e9; --t4:#067647; --t4-bg:#e8f7ee;
+  --hero:linear-gradient(120deg,#123a73 0%,#2a78d6 55%,#4a3aa7 100%);
 }
 @media (prefers-color-scheme:dark){
   :root:where(:not([data-theme="light"])){
     color-scheme:dark;
-    --page:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink-2:#c3c2b7; --muted:#9a988f;
-    --line:#2c2c2a; --border:rgba(255,255,255,.12); --s1:#3987e5; --s2:#d95926; --hist:#c3c2b7;
-    --good:#0ca30c; --crit:#e66767; --wk:rgba(57,135,229,.10);
+    --page:#0b0c10; --surface:#15171c; --surface-2:#1b1e24; --ink:#f2f4f7; --ink-2:#c3c7cf; --muted:#98a2b3;
+    --line:#262a32; --border:rgba(255,255,255,.08); --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35);
+    --brand:#3987e5; --brand-2:#9085e9; --s1:#3987e5; --s2:#d95926; --hist:#98a2b3;
+    --good:#32d583; --good-bg:rgba(50,213,131,.10); --good-line:rgba(50,213,131,.30); --crit:#e66767; --wk:rgba(57,135,229,.08);
+    --t1:#5b9cf0; --t1-bg:rgba(57,135,229,.14); --t2:#a79cf0; --t2-bg:rgba(144,133,233,.14); --t3:#f08a55; --t3-bg:rgba(217,89,38,.16); --t4:#32d583; --t4-bg:rgba(50,213,131,.12);
+    --hero:linear-gradient(120deg,#0d2547 0%,#1c4f93 55%,#3a2f86 100%);
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --page:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink-2:#c3c2b7; --muted:#9a988f;
-  --line:#2c2c2a; --border:rgba(255,255,255,.12); --s1:#3987e5; --s2:#d95926; --hist:#c3c2b7;
-  --good:#0ca30c; --crit:#e66767; --wk:rgba(57,135,229,.10);
+  --page:#0b0c10; --surface:#15171c; --surface-2:#1b1e24; --ink:#f2f4f7; --ink-2:#c3c7cf; --muted:#98a2b3;
+  --line:#262a32; --border:rgba(255,255,255,.08); --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.35);
+  --brand:#3987e5; --brand-2:#9085e9; --s1:#3987e5; --s2:#d95926; --hist:#98a2b3;
+  --good:#32d583; --good-bg:rgba(50,213,131,.10); --good-line:rgba(50,213,131,.30); --crit:#e66767; --wk:rgba(57,135,229,.08);
+  --t1:#5b9cf0; --t1-bg:rgba(57,135,229,.14); --t2:#a79cf0; --t2-bg:rgba(144,133,233,.14); --t3:#f08a55; --t3-bg:rgba(217,89,38,.16); --t4:#32d583; --t4-bg:rgba(50,213,131,.12);
+  --hero:linear-gradient(120deg,#0d2547 0%,#1c4f93 55%,#3a2f86 100%);
 }
 *{box-sizing:border-box;margin:0}
 [hidden]{display:none!important}
-body{background:var(--page);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
-.wrap{max-width:1180px;margin:0 auto;padding:32px 16px 48px}
-h1{font-size:clamp(1.5rem,3.5vw,2rem);letter-spacing:-.02em}
-h2{font-size:1.05rem;margin-bottom:10px}
-.sub{color:var(--ink-2);margin:4px 0 20px;max-width:68ch}
-.sub a,.links a,footer a{color:var(--ink-2)}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px}
+body{background:var(--page);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,-apple-system,sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:0 16px 48px}
+h2{font-size:1.05rem;margin-bottom:10px;letter-spacing:-.01em}
+button{font:inherit;cursor:pointer}
+a{color:inherit}
+
+/* ---------- cabeçalho ---------- */
+.hero{background:var(--hero);color:#fff;padding:22px 0 76px;margin-bottom:-52px}
+.hero .wrap{padding-bottom:0}
+.hero-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.marca{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);display:grid;place-items:center}
+.logo svg{width:24px;height:24px}
+.marca b{display:block;font-size:1.25rem;letter-spacing:-.02em;line-height:1.1}
+.marca span{font-size:.8rem;opacity:.85}
+.tema{display:inline-flex;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:3px;background:rgba(255,255,255,.10)}
+.tema button{border:0;background:none;color:rgba(255,255,255,.9);font-size:.82rem;padding:5px 12px;border-radius:999px}
+.tema button[aria-pressed="true"]{background:#fff;color:#123a73}
+.hero h1{font-size:clamp(1.6rem,3.6vw,2.3rem);letter-spacing:-.03em;line-height:1.15;margin:30px 0 8px;max-width:22ch}
+.hero p{max-width:62ch;opacity:.9}
+.hero p a{color:#fff}
+
+/* ---------- cartões e botões ---------- */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
 .rec{color:var(--ink-2);font-size:.92rem}
 .acoes{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-button{font:inherit;cursor:pointer}
-.btn{border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:10px;padding:9px 14px;font-weight:600;font-size:.9rem}
-.btn.pri{background:var(--ink);color:var(--surface);border-color:var(--ink)}
-.btn:disabled{opacity:.5;cursor:wait}
-.links{display:flex;flex-wrap:wrap;gap:16px;font-size:.85rem;margin-top:10px}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 16px;font-weight:600;font-size:.9rem;transition:transform .12s,box-shadow .12s}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.btn.pri{background:linear-gradient(120deg,var(--brand),var(--brand-2));color:#fff;border-color:transparent}
+.btn:disabled{opacity:.55;cursor:wait;transform:none}
+.btn svg{width:17px;height:17px}
+.links{display:flex;flex-wrap:wrap;gap:18px;font-size:.85rem;margin-top:12px}
+.links a{color:var(--ink-2)}
 .cont{color:var(--muted);font-size:.8rem}
 .erro{border:1px solid var(--crit);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:.9rem}
-.mapa{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
+.mapa{margin-top:16px;border-top:1px solid var(--line);padding-top:16px}
 .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:12px 0}
 label{display:grid;gap:4px;font-size:.82rem;color:var(--ink-2)}
-select,input{font:inherit;font-size:.9rem;color:var(--ink);background:var(--page);border:1px solid var(--border);border-radius:8px;padding:7px 9px;width:100%}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:16px 0}
-.kpi .lbl{color:var(--ink-2);font-size:.85rem}
-.kpi .v{font-size:1.6rem;font-weight:700;letter-spacing:-.02em}
+select,input{font:inherit;font-size:.9rem;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;width:100%}
+.envio{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:center}
+.passos{display:grid;gap:12px;list-style:none;padding:0}
+.passos li{display:flex;gap:12px;align-items:flex-start}
+.passos .n{flex:0 0 28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.85rem;background:var(--t1-bg);color:var(--t1)}
+.passos li:nth-child(2) .n{background:var(--t2-bg);color:var(--t2)}
+.passos li:nth-child(3) .n{background:var(--t4-bg);color:var(--t4)}
+.passos b{display:block;font-size:.92rem}
+.passos span{color:var(--muted);font-size:.84rem}
+.carregando{display:flex;gap:10px;align-items:center;color:var(--ink-2);margin-top:16px}
+.spin{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:g 1s linear infinite}
+@keyframes g{to{transform:rotate(360deg)}}
+
+/* ---------- indicadores ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:18px 0}
+.kpi{position:relative;overflow:hidden;border-top:3px solid var(--c)}
+.kpi .ico{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:var(--cb);color:var(--c);margin-bottom:12px}
+.kpi .ico svg{width:20px;height:20px}
+.kpi .lbl{color:var(--ink-2);font-size:.84rem;font-weight:600}
+.kpi .v{font-size:1.75rem;font-weight:700;letter-spacing:-.02em;line-height:1.2;margin:2px 0}
 .kpi .d{color:var(--muted);font-size:.78rem}
-.comp{margin-bottom:16px}
-.comp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:10px}
-.comp-grid .v{font-size:1.25rem;font-weight:700}
+.kpi.c1{--c:var(--t1);--cb:var(--t1-bg)} .kpi.c2{--c:var(--t2);--cb:var(--t2-bg)}
+.kpi.c3{--c:var(--t3);--cb:var(--t3-bg)} .kpi.c4{--c:var(--t4);--cb:var(--t4-bg)}
+
+/* ---------- teste com o histórico ---------- */
+.comp{margin-bottom:18px}
+.comp-cab{display:flex;gap:12px;align-items:center;margin-bottom:6px}
+.selo{font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--t2);background:var(--t2-bg);border-radius:999px;padding:3px 10px}
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px}
+.comp-grid>div{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:14px}
+.comp-grid .destaque{background:var(--good-bg);border-color:var(--good-line)}
+.comp-grid .destaque .v{color:var(--good)}
+.comp-grid .v{font-size:1.3rem;font-weight:700;letter-spacing:-.01em}
 .comp-grid .d{color:var(--muted);font-size:.8rem}
 .up{color:var(--good);font-weight:600}
-.grid2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;align-items:start}
-.barra{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+
+/* ---------- plano e gráfico ---------- */
+.grid2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;align-items:start}
+.barra{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
 .busca{width:220px}
-.tbl{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.tbl{overflow-x:auto;border:1px solid var(--border);border-radius:16px;background:var(--surface);box-shadow:var(--shadow)}
 table{width:100%;border-collapse:collapse;font-size:.86rem}
-th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
-th:first-child,td:first-child{text-align:left;white-space:normal}
-th{color:var(--ink-2);font-size:.76rem;font-weight:600}
-th small{display:block;font-weight:400;color:var(--muted)}
+th,td{padding:10px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal;padding-left:16px}
+th{color:var(--ink-2);font-size:.76rem;font-weight:700;background:var(--surface-2);text-transform:uppercase;letter-spacing:.03em}
+th small{display:block;font-weight:500;color:var(--muted);text-transform:none;letter-spacing:0}
 td,th{font-variant-numeric:tabular-nums}
 .fds{background:var(--wk)}
-tbody tr{cursor:pointer}
+th.fds{color:var(--brand)}
+tbody tr{cursor:pointer;transition:background .12s}
 tbody tr:hover td{background:var(--wk)}
-tbody tr[aria-selected="true"] td:first-child{box-shadow:inset 3px 0 0 var(--s1)}
+tbody tr[aria-selected="true"] td{background:var(--t1-bg)}
+tbody tr[aria-selected="true"] td:first-child{box-shadow:inset 3px 0 0 var(--brand)}
 tr:last-child td{border-bottom:0}
-td.tot{font-weight:700}
+td.tot{font-weight:700;color:var(--brand)}
 .cat{display:block;color:var(--muted);font-size:.75rem}
 .graf{position:sticky;top:16px}
-.graf h3{font-size:.95rem}
-.box{position:relative;height:300px;margin-top:8px}
-.legenda{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--ink-2);margin-top:6px}
+.graf-topo{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.graf-topo select{width:auto;max-width:100%;font-weight:600}
+.box{position:relative;height:300px;margin-top:10px}
+.legenda{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--ink-2);margin-top:8px}
 .legenda i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
 .legenda i.bar{height:10px;width:10px;border-radius:2px}
 .dica{color:var(--muted);font-size:.8rem;margin-top:8px}
-.carregando{display:flex;gap:10px;align-items:center;color:var(--ink-2);margin-top:16px}
-.spin{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--s1);border-radius:50%;animation:g 1s linear infinite}
-@keyframes g{to{transform:rotate(360deg)}}
-footer{margin-top:28px;color:var(--muted);font-size:.8rem;max-width:90ch}
-.topo{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.tema{display:inline-flex;border:1px solid var(--border);border-radius:999px;padding:3px;background:var(--surface);flex:0 0 auto}
-.tema button{border:0;background:none;color:var(--ink-2);font-size:.82rem;padding:5px 12px;border-radius:999px}
-.tema button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
-.graf-topo{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-.graf-topo select{width:auto;max-width:100%;font-weight:600}
-@media (max-width:900px){.grid2{grid-template-columns:1fr}.graf{position:static}}
+footer{margin-top:32px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:.8rem;display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
+footer p{max-width:80ch}
+@media (max-width:900px){.grid2,.envio{grid-template-columns:1fr}.graf{position:static}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="topo">
-    <h1>Previsão de Demanda</h1>
-    <div class="tema" role="group" aria-label="Tema">
-      <button type="button" data-tema="light">☀ Claro</button>
-      <button type="button" data-tema="dark">☾ Escuro</button>
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-top">
+      <a class="marca" href="/">
+        <span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/><circle cx="19" cy="6" r="1.4" fill="#fff"/></svg></span>
+        <span><b>Produz Certo</b><span>Previsão de demanda e plano de produção</span></span>
+      </a>
+      <div class="tema" role="group" aria-label="Tema">
+        <button type="button" data-tema="light">☀ Claro</button>
+        <button type="button" data-tema="dark">☾ Escuro</button>
+      </div>
     </div>
+    <h1>Saiba quanto produzir de cada produto nos próximos 7 dias</h1>
+    <p>O modelo aprende com o seu histórico de vendas e equilibra o prejuízo da sobra com o da falta. <a href="/docs">Documentação da API</a></p>
   </div>
-  <p class="sub">Descubra quanto produzir de cada produto nos próximos 7 dias. O modelo aprende com o seu histórico de vendas e equilibra o prejuízo da sobra com o da falta. <a href="/docs">Documentação da API</a></p>
+</header>
 
+<div class="wrap">
   <div class="card">
-    <p class="rec" style="margin-bottom:12px">Envie o histórico de vendas (pelo menos 8 semanas) com <strong>data, produto e quantidade</strong>. Preço e custo são opcionais e permitem calcular a quantidade que dá mais lucro. Colunas em português ou inglês.</p>
-    <div class="acoes">
-      <button class="btn pri" id="usar-exemplo">Usar padaria de exemplo</button>
-      <label class="btn" style="display:inline-flex;cursor:pointer">Enviar histórico (Excel ou CSV)<input type="file" id="arquivo" accept=".xlsx,.xls,.csv,text/csv" hidden></label>
+    <div class="envio">
+      <div>
+        <h2>Comece pelo seu histórico de vendas</h2>
+        <p class="rec" style="margin-bottom:16px">Pelo menos 8 semanas, com <strong>data, produto e quantidade</strong>. Preço e custo são opcionais e permitem calcular a quantidade que dá mais lucro. Colunas em português ou inglês.</p>
+        <div class="acoes">
+          <button class="btn pri" id="usar-exemplo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 9-14 9V3z"/></svg>Usar padaria de exemplo</button>
+          <label class="btn" style="cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>Enviar histórico (Excel ou CSV)<input type="file" id="arquivo" accept=".xlsx,.xls,.csv,text/csv" hidden></label>
+        </div>
+        <div class="links"><a href="/modelo-planilha.xlsx">Baixar modelo de planilha (Excel)</a><a href="/base-exemplo.xlsx">Baixar vendas da padaria de exemplo (Excel)</a></div>
+      </div>
+      <ol class="passos">
+        <li><span class="n">1</span><div><b>Envie as vendas</b><span>Excel ou CSV exportado do caixa ou do ERP.</span></div></li>
+        <li><span class="n">2</span><div><b>O modelo aprende o seu padrão</b><span>Dia da semana, feriados, sazonalidade e tendência de cada produto.</span></div></li>
+        <li><span class="n">3</span><div><b>Receba o plano da semana</b><span>Quanto produzir por dia e quanto você ganharia em relação ao método atual.</span></div></li>
+      </ol>
     </div>
-    <div class="links"><a href="/modelo-planilha.xlsx">Baixar modelo de planilha (Excel)</a><a href="/base-exemplo.xlsx">Baixar vendas da padaria de exemplo (Excel)</a></div>
     <div class="erro" id="erro" hidden></div>
     <form class="mapa" id="mapa" hidden>
       <h2>Correspondência de colunas</h2>
@@ -157,7 +225,10 @@ footer{margin-top:28px;color:var(--muted);font-size:.8rem;max-width:90ch}
     </div>
   </div>
 
-  <footer>Como funciona: um modelo LightGBM aprende, com o histórico enviado, o padrão de cada produto por dia da semana, feriados, sazonalidade e tendência. A quantidade recomendada fica um pouco acima ou abaixo da previsão conforme a margem do produto: quando a margem é alta, faltar custa mais do que sobrar. A padaria de exemplo tem dados fictícios.</footer>
+  <footer>
+    <p>Como funciona: um modelo LightGBM aprende, com o histórico enviado, o padrão de cada produto por dia da semana, feriados, sazonalidade e tendência. A quantidade recomendada fica um pouco acima ou abaixo da previsão conforme a margem do produto: quando a margem é alta, faltar custa mais do que sobrar. A padaria de exemplo tem dados fictícios.</p>
+    <span>Produz Certo · <a href="https://github.com/myttrindade/previsao-demanda">código no GitHub</a></span>
+  </footer>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -250,22 +321,24 @@ $('mapa').addEventListener('submit', e => {
   executar('/planejar', '/comparar', () => ({method: 'POST', body: formulario()}));
 });
 
+const ICONES = {"produtos": "<path d=\"M21 8l-9-5-9 5 9 5 9-5z\"/><path d=\"M3 8v8l9 5 9-5V8\"/><path d=\"M12 13v8\"/>", "historico": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"17\" rx=\"2\"/><path d=\"M16 2v4M8 2v4M3 10h18\"/>", "produzir": "<path d=\"M4 20h16\"/><path d=\"M6 20V10l6-6 6 6v10\"/><path d=\"M10 20v-5h4v5\"/>", "faturamento": "<path d=\"M12 2v20\"/><path d=\"M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6\"/>"};
 function desenharResumo() {
   const r = plano.resumo;
   const tiles = [
-    ['Produtos', num(r.produtos), ''],
-    ['Histórico analisado', `${num(r.dias_historico)} dias`, `${dataBR(r.historico_inicio)} a ${dataBR(r.historico_fim)}`],
-    ['A produzir na semana', num(r.total_produzir), `unidades, de ${dataBR(plano.dias[0])} a ${dataBR(plano.dias.at(-1))}`],
+    ['c1', 'produtos', 'Produtos', num(r.produtos), 'no histórico enviado'],
+    ['c2', 'historico', 'Histórico analisado', `${num(r.dias_historico)} dias`, `${dataBR(r.historico_inicio)} a ${dataBR(r.historico_fim)}`],
+    ['c3', 'produzir', 'A produzir na semana', num(r.total_produzir), `unidades, de ${dataBR(plano.dias[0])} a ${dataBR(plano.dias.at(-1))}`],
   ];
-  if (r.tem_precos) tiles.push(['Faturamento previsto', brl(r.faturamento_previsto), `custo de produção: ${brl(r.custo_producao)}`]);
-  $('kpis').innerHTML = tiles.map(([l, v, d]) =>
-    `<div class="card kpi"><div class="lbl">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+  if (r.tem_precos) tiles.push(['c4', 'faturamento', 'Faturamento previsto', brl(r.faturamento_previsto), `custo de produção: ${brl(r.custo_producao)}`]);
+  $('kpis').innerHTML = tiles.map(([cor, ico, l, v, d]) => `<div class="card kpi ${cor}">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONES[ico]}</svg></div>
+      <div class="lbl">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
 }
 
 function desenharComparacao(c) {
-  if (!c.disponivel) { $('comparacao').innerHTML = `<h2>Teste com o seu histórico</h2><p class="rec">${esc(c.motivo)}</p>`; return; }
+  if (!c.disponivel) { $('comparacao').innerHTML = `<div class="comp-cab"><h2 style="margin:0">Teste com o seu histórico</h2><span class="selo">Validação</span></div><p class="rec">${esc(c.motivo)}</p>`; return; }
   const melhora = (c.erro_tradicional - c.erro_modelo) / c.erro_tradicional;
-  let html = `<h2>Teste com o seu histórico</h2>
+  let html = `<div class="comp-cab"><h2 style="margin:0">Teste com o seu histórico</h2><span class="selo">Validação</span></div>
     <p class="rec">Simulamos as últimas ${c.semanas} semanas (${dataBR(c.periodo[0])} a ${dataBR(c.periodo[1])}): a cada semana, o modelo só conhecia o passado. Comparação com o método tradicional, que produz a média das últimas 4 semanas no mesmo dia da semana, mais 10%.</p>
     <div class="comp-grid">
       <div><div class="lbl rec">Erro da previsão</div><div class="v">${pct(c.erro_modelo)} <span class="cont">vs ${pct(c.erro_tradicional)}</span></div>
@@ -273,7 +346,7 @@ function desenharComparacao(c) {
   if (c.tem_precos) {
     const t = c.tradicional, m = c.modelo;
     html += `
-      <div><div class="lbl rec">Lucro a mais no período</div><div class="v">${c.ganho_periodo >= 0 ? '+' : ''}${brl(c.ganho_periodo)}</div>
+      <div class="${c.ganho_periodo > 0 ? 'destaque' : ''}"><div class="lbl rec">Lucro a mais no período</div><div class="v">${c.ganho_periodo >= 0 ? '+' : ''}${brl(c.ganho_periodo)}</div>
         <div class="d">cerca de <strong>${brl(c.ganho_mensal_estimado)} por mês</strong></div></div>
       <div><div class="lbl rec">Vendas perdidas por falta</div><div class="v">${brl(m.vendas_perdidas_rs)} <span class="cont">vs ${brl(t.vendas_perdidas_rs)}</span></div>
         <div class="d">clientes atendidos: ${pct(m.atendimento)} vs ${pct(t.atendimento)}</div></div>
