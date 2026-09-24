@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: previsao-demanda
+    runtime: docker
+    plan: free
+    region: ohio
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /saude

@@ -1,0 +1,31 @@
+{
+  "semanas_avaliadas": 12,
+  "periodo": [
+    "2026-07-02",
+    "2026-09-23"
+  ],
+  "wape": {
+    "tradicional": 0.23438290510263082,
+    "modelo": 0.2057162174605313
+  },
+  "tradicional": {
+    "lucro": 511465.77,
+    "desperdicio_unid": 38249.0,
+    "desperdicio_rs": 56856.0,
+    "vendas_perdidas_unid": 17517.0,
+    "vendas_perdidas_rs": 80436.51000000001,
+    "atendimento": 0.9208721812662619
+  },
+  "modelo": {
+    "lucro": 521160.82,
+    "desperdicio_unid": 39012.0,
+    "desperdicio_rs": 57943.2,
+    "vendas_perdidas_unid": 13377.0,
+    "vendas_perdidas_rs": 64429.76000000001,
+    "atendimento": 0.939573395490026
+  },
+  "ganho_lucro_periodo": 9695.049999999988,
+  "ganho_lucro_anual_estimado": 42011.88333333328,
+  "produtos_em_que_modelo_erra_menos": 18,
+  "produtos": 18
+}

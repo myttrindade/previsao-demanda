@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Previsão de Demanda</title>
+<meta name="description" content="Descubra quanto produzir de cada produto nos próximos 7 dias a partir do seu histórico de vendas.">
+<script>try{const t=localStorage.getItem('tema');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+<style>
+:root{
+  color-scheme:light;
+  --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink-2:#52514e; --muted:#6f6d68;
+  --line:#e1e0d9; --border:rgba(11,11,11,.12); --s1:#2a78d6; --s2:#eb6834; --hist:#52514e;
+  --good:#006300; --crit:#d03b3b; --wk:rgba(42,120,214,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme:dark;
+    --page:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink-2:#c3c2b7; --muted:#9a988f;
+    --line:#2c2c2a; --border:rgba(255,255,255,.12); --s1:#3987e5; --s2:#d95926; --hist:#c3c2b7;
+    --good:#0ca30c; --crit:#e66767; --wk:rgba(57,135,229,.10);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --page:#0d0d0d; --surface:#1a1a19; --ink:#fff; --ink-2:#c3c2b7; --muted:#9a988f;
+  --line:#2c2c2a; --border:rgba(255,255,255,.12); --s1:#3987e5; --s2:#d95926; --hist:#c3c2b7;
+  --good:#0ca30c; --crit:#e66767; --wk:rgba(57,135,229,.10);
+}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+body{background:var(--page);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 16px 48px}
+h1{font-size:clamp(1.5rem,3.5vw,2rem);letter-spacing:-.02em}
+h2{font-size:1.05rem;margin-bottom:10px}
+.sub{color:var(--ink-2);margin:4px 0 20px;max-width:68ch}
+.sub a,.links a,footer a{color:var(--ink-2)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px}
+.rec{color:var(--ink-2);font-size:.92rem}
+.acoes{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:inherit;cursor:pointer}
+.btn{border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:10px;padding:9px 14px;font-weight:600;font-size:.9rem}
+.btn.pri{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.btn:disabled{opacity:.5;cursor:wait}
+.links{display:flex;flex-wrap:wrap;gap:16px;font-size:.85rem;margin-top:10px}
+.cont{color:var(--muted);font-size:.8rem}
+.erro{border:1px solid var(--crit);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:.9rem}
+.mapa{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:12px 0}
+label{display:grid;gap:4px;font-size:.82rem;color:var(--ink-2)}
+select,input{font:inherit;font-size:.9rem;color:var(--ink);background:var(--page);border:1px solid var(--border);border-radius:8px;padding:7px 9px;width:100%}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:16px 0}
+.kpi .lbl{color:var(--ink-2);font-size:.85rem}
+.kpi .v{font-size:1.6rem;font-weight:700;letter-spacing:-.02em}
+.kpi .d{color:var(--muted);font-size:.78rem}
+.comp{margin-bottom:16px}
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:10px}
+.comp-grid .v{font-size:1.25rem;font-weight:700}
+.comp-grid .d{color:var(--muted);font-size:.8rem}
+.up{color:var(--good);font-weight:600}
+.grid2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;align-items:start}
+.barra{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.busca{width:220px}
+.tbl{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+th{color:var(--ink-2);font-size:.76rem;font-weight:600}
+th small{display:block;font-weight:400;color:var(--muted)}
+td,th{font-variant-numeric:tabular-nums}
+.fds{background:var(--wk)}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:var(--wk)}
+tbody tr[aria-selected="true"] td:first-child{box-shadow:inset 3px 0 0 var(--s1)}
+tr:last-child td{border-bottom:0}
+td.tot{font-weight:700}
+.cat{display:block;color:var(--muted);font-size:.75rem}
+.graf{position:sticky;top:16px}
+.graf h3{font-size:.95rem}
+.box{position:relative;height:300px;margin-top:8px}
+.legenda{display:flex;flex-wrap:wrap;gap:14px;font-size:.8rem;color:var(--ink-2);margin-top:6px}
+.legenda i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.legenda i.bar{height:10px;width:10px;border-radius:2px}
+.dica{color:var(--muted);font-size:.8rem;margin-top:8px}
+.carregando{display:flex;gap:10px;align-items:center;color:var(--ink-2);margin-top:16px}
+.spin{width:16px;height:16px;border:2px solid var(--line);border-top-color:var(--s1);border-radius:50%;animation:g 1s linear infinite}
+@keyframes g{to{transform:rotate(360deg)}}
+footer{margin-top:28px;color:var(--muted);font-size:.8rem;max-width:90ch}
+.topo{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.tema{display:inline-flex;border:1px solid var(--border);border-radius:999px;padding:3px;background:var(--surface);flex:0 0 auto}
+.tema button{border:0;background:none;color:var(--ink-2);font-size:.82rem;padding:5px 12px;border-radius:999px}
+.tema button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.graf-topo{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.graf-topo select{width:auto;max-width:100%;font-weight:600}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}.graf{position:static}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topo">
+    <h1>Previsão de Demanda</h1>
+    <div class="tema" role="group" aria-label="Tema">
+      <button type="button" data-tema="light">☀ Claro</button>
+      <button type="button" data-tema="dark">☾ Escuro</button>
+    </div>
+  </div>
+  <p class="sub">Descubra quanto produzir de cada produto nos próximos 7 dias. O modelo aprende com o seu histórico de vendas e equilibra o prejuízo da sobra com o da falta. <a href="/docs">Documentação da API</a></p>
+
+  <div class="card">
+    <p class="rec" style="margin-bottom:12px">Envie o histórico de vendas (pelo menos 8 semanas) com <strong>data, produto e quantidade</strong>. Preço e custo são opcionais e permitem calcular a quantidade que dá mais lucro. Colunas em português ou inglês.</p>
+    <div class="acoes">
+      <button class="btn pri" id="usar-exemplo">Usar padaria de exemplo</button>
+      <label class="btn" style="display:inline-flex;cursor:pointer">Enviar histórico (Excel ou CSV)<input type="file" id="arquivo" accept=".xlsx,.xls,.csv,text/csv" hidden></label>
+    </div>
+    <div class="links"><a href="/modelo-planilha.xlsx">Baixar modelo de planilha (Excel)</a><a href="/base-exemplo.xlsx">Baixar vendas da padaria de exemplo (Excel)</a></div>
+    <div class="erro" id="erro" hidden></div>
+    <form class="mapa" id="mapa" hidden>
+      <h2>Correspondência de colunas</h2>
+      <p class="rec" id="mapa-msg"></p>
+      <div class="fields" id="mapa-campos"></div>
+      <button class="btn pri" type="submit">Continuar</button>
+    </form>
+    <div class="carregando" id="carregando" hidden><span class="spin"></span><span id="carregando-txt">Treinando o modelo com o seu histórico...</span></div>
+  </div>
+
+  <div id="resultado" hidden>
+    <div class="kpis" id="kpis"></div>
+
+    <section class="card comp" id="comparacao" aria-live="polite"></section>
+
+    <div class="grid2">
+      <section>
+        <div class="barra">
+          <h2 style="margin:0">Plano de produção</h2>
+          <div class="acoes">
+            <input class="busca" id="busca" type="search" placeholder="Buscar produto" aria-label="Buscar produto">
+            <button class="btn" id="baixar">Baixar plano (CSV)</button>
+          </div>
+        </div>
+        <div class="tbl"><table><thead id="cab"></thead><tbody id="linhas"></tbody></table></div>
+        <p class="dica">Quantidades recomendadas para produzir em cada dia. Clique num produto, ou escolha na lista ao lado, para ver o gráfico.</p>
+      </section>
+      <section class="card graf">
+        <div class="graf-topo">
+          <h3 id="graf-titulo" hidden></h3>
+          <label style="display:flex;gap:8px;align-items:center;font-size:.85rem">Produto
+            <select id="graf-produto" aria-label="Produto do gráfico"></select></label>
+        </div>
+        <p class="cont" id="graf-sub"></p>
+        <div class="box"><canvas id="grafico" aria-label="Histórico de vendas e previsão do produto selecionado"></canvas></div>
+        <div class="legenda">
+          <span><i style="background:var(--hist)"></i>Vendas (últimas 4 semanas)</span>
+          <span><i style="background:var(--s1)"></i>Previsão</span>
+          <span><i class="bar" style="background:var(--s2)"></i>Produzir</span>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer>Como funciona: um modelo LightGBM aprende, com o histórico enviado, o padrão de cada produto por dia da semana, feriados, sazonalidade e tendência. A quantidade recomendada fica um pouco acima ou abaixo da previsão conforme a margem do produto: quando a margem é alta, faltar custa mais do que sobrar. A padaria de exemplo tem dados fictícios.</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+// ---------- tema claro / escuro ----------
+function temaAtual() {
+  return document.documentElement.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+}
+function marcarTema() {
+  document.querySelectorAll('[data-tema]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tema === temaAtual()));
+}
+document.querySelectorAll('[data-tema]').forEach(b => b.addEventListener('click', () => {
+  document.documentElement.dataset.theme = b.dataset.tema;
+  try { localStorage.setItem('tema', b.dataset.tema); } catch (e) {}
+  marcarTema();
+  if (typeof plano !== 'undefined' && plano) desenharGrafico();  // o gráfico usa as cores do tema
+}));
+marcarTema();
+const num = (v, c = 0) => Number(v).toLocaleString('pt-BR', {minimumFractionDigits: c, maximumFractionDigits: c});
+const brl = (v, c = 0) => 'R$ ' + num(v, c);
+const pct = v => num(v * 100, 1) + '%';
+const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+const dataBR = iso => { const [a, m, d] = iso.split('-'); return `${d}/${m}/${a.slice(2)}`; };
+const diaSemana = iso => SEMANA[new Date(iso + 'T12:00').getDay()];
+
+let plano = null, selecionado = null, grafico = null, arquivoAtual = null, mapaAtual = {};
+const $ = id => document.getElementById(id);
+
+function ocupado(sim, texto) {
+  $('carregando').hidden = !sim; $('usar-exemplo').disabled = sim;
+  if (texto) $('carregando-txt').textContent = texto;
+}
+
+async function pedir(url, opcoes) {
+  const r = await fetch(url, opcoes);
+  const corpo = await r.json();
+  if (!r.ok) { const e = new Error(typeof corpo.detail === 'string' ? corpo.detail : 'Não foi possível processar.'); e.detalhe = corpo.detail; throw e; }
+  return corpo;
+}
+
+function formulario() {
+  const d = new FormData(); d.append('arquivo', arquivoAtual);
+  if (Object.keys(mapaAtual).length) d.append('mapeamento', JSON.stringify(mapaAtual));
+  return d;
+}
+
+async function executar(urlPlano, urlComp, opcoes) {
+  $('erro').hidden = true; $('mapa').hidden = true;
+  ocupado(true, 'Treinando o modelo com o seu histórico...');
+  try {
+    plano = await pedir(urlPlano, opcoes());
+    selecionado = plano.produtos[0].produto;
+    desenharResumo(); desenharTabela(); desenharGrafico();
+    $('resultado').hidden = false;
+    $('comparacao').innerHTML = '<div class="carregando"><span class="spin"></span>Testando o modelo nas últimas semanas do seu histórico...</div>';
+    ocupado(false);
+    desenharComparacao(await pedir(urlComp, opcoes()));
+  } catch (e) {
+    ocupado(false);
+    if (e.detalhe && e.detalhe.tipo === 'mapeamento') return pedirMapeamento(e.detalhe);
+    $('erro').textContent = e.message; $('erro').hidden = false;
+    if (plano) $('comparacao').innerHTML = '';
+  }
+}
+
+$('usar-exemplo').addEventListener('click', () =>
+  executar('/planejar/exemplo', '/comparar/exemplo', () => ({})));
+$('arquivo').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  arquivoAtual = f; mapaAtual = {};
+  executar('/planejar', '/comparar', () => ({method: 'POST', body: formulario()}));
+  e.target.value = '';
+});
+
+function pedirMapeamento(det) {
+  const n = Object.keys(det.reconhecidas).length;
+  $('mapa-msg').textContent = `${det.mensagem} Reconheci ${n} coluna${n === 1 ? '' : 's'} automaticamente.`;
+  const opcoes = ['<option value="">— escolha a coluna —</option>',
+    ...det.colunas_arquivo.map(c => `<option value="${esc(c)}">${esc(c)}</option>`)].join('');
+  $('mapa-campos').innerHTML = det.faltando.map(f =>
+    `<label>${esc(f.nome)}<select name="${f.campo}" required>${opcoes}</select></label>`).join('');
+  $('mapa').hidden = false; $('resultado').hidden = true;
+}
+$('mapa').addEventListener('submit', e => {
+  e.preventDefault();
+  for (const s of e.target.querySelectorAll('select')) mapaAtual[s.name] = s.value;
+  executar('/planejar', '/comparar', () => ({method: 'POST', body: formulario()}));
+});
+
+function desenharResumo() {
+  const r = plano.resumo;
+  const tiles = [
+    ['Produtos', num(r.produtos), ''],
+    ['Histórico analisado', `${num(r.dias_historico)} dias`, `${dataBR(r.historico_inicio)} a ${dataBR(r.historico_fim)}`],
+    ['A produzir na semana', num(r.total_produzir), `unidades, de ${dataBR(plano.dias[0])} a ${dataBR(plano.dias.at(-1))}`],
+  ];
+  if (r.tem_precos) tiles.push(['Faturamento previsto', brl(r.faturamento_previsto), `custo de produção: ${brl(r.custo_producao)}`]);
+  $('kpis').innerHTML = tiles.map(([l, v, d]) =>
+    `<div class="card kpi"><div class="lbl">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+}
+
+function desenharComparacao(c) {
+  if (!c.disponivel) { $('comparacao').innerHTML = `<h2>Teste com o seu histórico</h2><p class="rec">${esc(c.motivo)}</p>`; return; }
+  const melhora = (c.erro_tradicional - c.erro_modelo) / c.erro_tradicional;
+  let html = `<h2>Teste com o seu histórico</h2>
+    <p class="rec">Simulamos as últimas ${c.semanas} semanas (${dataBR(c.periodo[0])} a ${dataBR(c.periodo[1])}): a cada semana, o modelo só conhecia o passado. Comparação com o método tradicional, que produz a média das últimas 4 semanas no mesmo dia da semana, mais 10%.</p>
+    <div class="comp-grid">
+      <div><div class="lbl rec">Erro da previsão</div><div class="v">${pct(c.erro_modelo)} <span class="cont">vs ${pct(c.erro_tradicional)}</span></div>
+        <div class="d">${melhora > 0 ? `<span class="up">▼ ${num(melhora * 100)}% menor</span> que o método tradicional` : 'semelhante ao método tradicional'}</div></div>`;
+  if (c.tem_precos) {
+    const t = c.tradicional, m = c.modelo;
+    html += `
+      <div><div class="lbl rec">Lucro a mais no período</div><div class="v">${c.ganho_periodo >= 0 ? '+' : ''}${brl(c.ganho_periodo)}</div>
+        <div class="d">cerca de <strong>${brl(c.ganho_mensal_estimado)} por mês</strong></div></div>
+      <div><div class="lbl rec">Vendas perdidas por falta</div><div class="v">${brl(m.vendas_perdidas_rs)} <span class="cont">vs ${brl(t.vendas_perdidas_rs)}</span></div>
+        <div class="d">clientes atendidos: ${pct(m.atendimento)} vs ${pct(t.atendimento)}</div></div>
+      <div><div class="lbl rec">Desperdício (custo)</div><div class="v">${brl(m.desperdicio_rs)} <span class="cont">vs ${brl(t.desperdicio_rs)}</span></div>
+        <div class="d">${num(m.desperdicio_unid)} vs ${num(t.desperdicio_unid)} unidades</div></div>`;
+  } else {
+    html += `<div><div class="lbl rec">Quer ver o impacto em reais?</div><div class="d" style="margin-top:4px">Inclua as colunas de preço e custo na planilha para calcular lucro, desperdício e vendas perdidas.</div></div>`;
+  }
+  $('comparacao').innerHTML = html + '</div>';
+}
+
+function desenharTabela() {
+  $('cab').innerHTML = `<tr><th>Produto</th>${plano.dias.map(d => {
+    const fds = ['sáb', 'dom'].includes(diaSemana(d));
+    return `<th class="${fds ? 'fds' : ''}">${diaSemana(d)}<small>${dataBR(d).slice(0, 5)}</small></th>`;
+  }).join('')}<th>Semana</th></tr>`;
+  const termo = $('busca').value.trim().toLowerCase();
+  const lista = plano.produtos.filter(p => !termo || p.produto.toLowerCase().includes(termo));
+  $('linhas').innerHTML = lista.map(p => `<tr data-produto="${esc(p.produto)}" aria-selected="${p.produto === selecionado}">
+      <td><strong>${esc(p.produto)}</strong>${p.categoria ? `<span class="cat">${esc(p.categoria)}</span>` : ''}</td>
+      ${p.produzir.map((q, i) => `<td class="${['sáb', 'dom'].includes(diaSemana(plano.dias[i])) ? 'fds' : ''}">${num(q)}</td>`).join('')}
+      <td class="tot">${num(p.total_semana)}</td></tr>`).join('')
+    || `<tr><td colspan="${plano.dias.length + 2}" class="cont">Nenhum produto encontrado.</td></tr>`;
+}
+$('busca').addEventListener('input', desenharTabela);
+$('linhas').addEventListener('click', e => {
+  const tr = e.target.closest('tr[data-produto]'); if (!tr) return;
+  selecionado = tr.dataset.produto; desenharTabela(); desenharGrafico();
+});
+document.getElementById('graf-produto').addEventListener('change', e => {
+  selecionado = e.target.value; desenharTabela(); desenharGrafico();
+});
+
+function desenharGrafico() {
+  const p = plano.produtos.find(x => x.produto === selecionado);
+  $('graf-titulo').textContent = p.produto;
+  $('graf-produto').innerHTML = plano.produtos.map(x => `<option ${x.produto === selecionado ? 'selected' : ''}>${esc(x.produto)}</option>`).join('');
+  $('graf-sub').textContent = `Produzir ${num(p.total_semana)} na semana` +
+    (p.preco ? ` · preço ${brl(p.preco, 2)} · custo ${brl(p.custo, 2)}` : '');
+  const labels = [...p.historico.datas, ...plano.dias].map(d => `${diaSemana(d)} ${dataBR(d).slice(0, 5)}`);
+  const n = p.historico.datas.length, vazio = k => Array(k).fill(null);
+  const dados = {
+    labels,
+    datasets: [
+      {type: 'bar', label: 'Produzir', data: [...vazio(n), ...p.produzir], backgroundColor: css('--s2'), borderRadius: 4, barPercentage: 0.7, order: 2},
+      {type: 'line', label: 'Vendas', data: [...p.historico.quantidades, ...vazio(plano.dias.length)], borderColor: css('--hist'), borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, order: 1},
+      {type: 'line', label: 'Previsão', data: [...vazio(n - 1), p.historico.quantidades.at(-1), ...p.previsto], borderColor: css('--s1'), borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, order: 0},
+    ],
+  };
+  const opcoes = {
+    responsive: true, maintainAspectRatio: false, animation: false,
+    interaction: {mode: 'index', intersect: false},
+    plugins: {legend: {display: false}, tooltip: {
+      backgroundColor: css('--surface'), titleColor: css('--ink'), bodyColor: css('--ink-2'), borderColor: css('--border'), borderWidth: 1,
+      filter: i => i.raw !== null, callbacks: {label: c => ` ${c.dataset.label}: ${num(c.raw)}`}}},
+    scales: {
+      x: {grid: {display: false}, ticks: {color: css('--muted'), maxRotation: 0, autoSkip: true, maxTicksLimit: 8}},
+      y: {beginAtZero: true, grid: {color: css('--line')}, border: {display: false}, ticks: {color: css('--muted'), callback: v => num(v)}},
+    },
+  };
+  if (grafico) grafico.destroy();
+  grafico = new Chart($('grafico'), {data: dados, options: opcoes});
+}
+
+$('baixar').addEventListener('click', () => {
+  const cab = ['produto', 'categoria', ...plano.dias.map(d => `${diaSemana(d)} ${dataBR(d)}`), 'total_semana'];
+  const linhas = plano.produtos.map(p => [p.produto, p.categoria || '', ...p.produzir, p.total_semana]);
+  const csv = [cab, ...linhas].map(l => l.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\r\n');
+  const url = URL.createObjectURL(new Blob(['﻿' + csv], {type: 'text/csv;charset=utf-8'}));
+  Object.assign(document.createElement('a'), {href: url, download: 'plano_de_producao.csv'}).click();
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
